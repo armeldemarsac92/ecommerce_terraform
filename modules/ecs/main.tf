@@ -436,7 +436,7 @@ resource "aws_ecs_task_definition" "frontend" {
           secretOptions = []
         }
         mountPoints      = []
-        name             = "tdev_api"
+        name             = "tdev_frontend"
         portMappings     = [
           {
             appProtocol   = "http"
