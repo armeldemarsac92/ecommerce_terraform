@@ -55,8 +55,8 @@ terraform:plan:
     - terraform show -no-color tfplan > tfplan.txt
   artifacts:
     paths:
-      - api/terraform/tfplan
-      - api/terraform/tfplan.txt
+      - tfplan
+      - tfplan.txt
     expire_in: 1 week
 
 terraform:apply:
