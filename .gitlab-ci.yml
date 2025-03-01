@@ -11,7 +11,6 @@ variables:
 stages:
   - terraform:validate
   - terraform:plan
-  - post-terraform-comment
   - terraform:apply
 
 # Define a template for Terraform setup to avoid repetition
@@ -59,37 +58,6 @@ terraform:plan:
       - api/terraform/tfplan
       - api/terraform/tfplan.txt
     expire_in: 1 week
-
-post_terraform_plan_comment:
-  stage: post-terraform-comment
-  image: debian
-  needs:
-    - terraform:plan
-  rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-      when: never
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      when: on_success
-  script:
-    - apt-get update
-    - apt-get install -y curl jq
-    - cd $CI_PROJECT_DIR/api/terraform
-    - |
-      # Read the entire plan file
-      PLAN_CONTENT=$(cat tfplan.txt)
-      
-      # Create the comment JSON with the full plan content
-      COMMENT_JSON=$(jq -n \
-        --arg plan "$PLAN_CONTENT" \
-        --arg url "$CI_PIPELINE_URL" \
-        '{body: "## Terraform Plan Results\n\n```terraform\n\($plan)\n```\n\n[View pipeline](\($url))"}')
-      
-      # Post comment to merge request
-      curl --location --request POST \
-        "https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/merge_requests/$CI_MERGE_REQUEST_IID/notes" \
-        --header "PRIVATE-TOKEN: $GITLAB_API_TOKEN" \
-        --header "Content-Type: application/json" \
-        --data "$COMMENT_JSON"
 
 terraform:apply:
   stage: terraform:apply
