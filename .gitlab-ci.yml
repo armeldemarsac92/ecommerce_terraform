@@ -38,12 +38,7 @@ terraform:validate:
   stage: terraform:validate
   image: alpine:latest
   rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      changes:
-        - api/terraform/**/*
     - if: $CI_COMMIT_BRANCH == "main"
-      changes:
-        - api/terraform/**/*
   <<: *terraform_setup
   script:
     - terraform validate
@@ -54,11 +49,7 @@ terraform:plan:
   image: alpine:latest
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      changes:
-        - api/terraform/**/*
     - if: $CI_COMMIT_BRANCH == "main"
-      changes:
-        - api/terraform/**/*
   <<: *terraform_setup
   script:
     - terraform plan -out=tfplan
@@ -79,8 +70,6 @@ post_terraform_plan_comment:
       when: never
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
       when: on_success
-      changes:
-        - api/terraform/**/*
   script:
     - apt-get update
     - apt-get install -y curl jq
@@ -107,8 +96,6 @@ terraform:apply:
   image: alpine:latest
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
-      changes:
-        - api/terraform/**/*
       when: manual
   <<: *terraform_setup
   script:
@@ -122,8 +109,6 @@ terraform:destroy:
   image: alpine:latest
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
-      changes:
-        - api/terraform/**/*
       when: manual
   <<: *terraform_setup
   script:
