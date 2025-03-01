@@ -110,7 +110,7 @@ resource "aws_security_group" "auth" {
   vpc_id      = var.vpc_id
 }
 
-resource "aws_security_group_rule" "database_ingress" {
+resource "aws_security_group_rule" "database_ingress_auth" {
   type                     = "ingress"
   from_port                = 5432
   to_port                  = 5432
@@ -264,6 +264,17 @@ resource "aws_security_group" "api" {
     "Project" = var.project_name
   }
   vpc_id      = var.vpc_id
+}
+
+resource "aws_security_group_rule" "database_ingress_api" {
+  type                     = "ingress"
+  from_port                = 5432
+  to_port                  = 5432
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.api.id
+  security_group_id        = var.database_security_group_id
+
+  description = "Allow PostgreSQL accessss from the auth container"
 }
 
 resource "aws_ecs_task_definition" "api" {
