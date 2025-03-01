@@ -1,0 +1,5 @@
+{
+  "name": "databaase",
+  "description": "An RDS PSQL instance that uses snapshots when deleted and created.",
+  "providers": ["aws"]
+}

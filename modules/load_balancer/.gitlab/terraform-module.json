@@ -1,0 +1,5 @@
+{
+  "name": "load balancer",
+  "description": "An application load balancer that routes traffic between the different ecs instances.",
+  "providers": ["aws"]
+}

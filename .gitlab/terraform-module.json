@@ -1,0 +1,5 @@
+{
+  "name": "api-infrastructure",
+  "description": "Terraform modules for API infrastructure including VPC, bastion, database, ECS, and load balancer", 
+  "providers": ["aws"]
+}

@@ -1,0 +1,5 @@
+{
+  "name": "ecs cluster",
+  "description": "An ECS cluster for an API, an AUTH server and a frontend.",
+  "providers": ["aws"]
+}
