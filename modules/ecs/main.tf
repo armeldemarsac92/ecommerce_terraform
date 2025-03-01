@@ -274,7 +274,7 @@ resource "aws_security_group_rule" "database_ingress_api" {
   source_security_group_id = aws_security_group.api.id
   security_group_id        = var.database_security_group_id
 
-  description = "Allow PostgreSQL accessss from the auth container"
+  description = "Allow PostgreSQL accessss from the api container"
 }
 
 resource "aws_ecs_task_definition" "api" {
