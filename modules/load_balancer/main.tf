@@ -341,8 +341,8 @@ resource "aws_security_group_rule" "api_server_ingress" {
 
 resource "aws_security_group_rule" "frontend_server_ingress" {
   type                     = "ingress"
-  from_port                = 8080
-  to_port                  = 8080
+  from_port                = 3000
+  to_port                  = 3000
   protocol                 = "tcp"
   source_security_group_id = aws_security_group.main.id
   security_group_id        = var.frontend_security_group_id
