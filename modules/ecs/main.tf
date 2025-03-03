@@ -427,10 +427,6 @@ resource "aws_ecs_task_definition" "frontend" {
     [
       {
         environment      = [
-          {
-            name  = "ASPNETCORE_ENVIRONMENT"
-            value = "${var.environment}"
-          },
         ]
         essential        = true
         image            = "502863813996.dkr.ecr.eu-central-1.amazonaws.com/${var.project_name}/${var.environment}/frontend:latest"
