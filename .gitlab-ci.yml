@@ -72,7 +72,7 @@ prepare-environment:
 terraform:validate:
   stage: terraform:validate
   needs:
-    - prepare-environment
+    - prepare-environment  
   <<: *terraform_setup
   script:
     - terraform validate
@@ -81,6 +81,7 @@ terraform:validate:
 terraform:plan:
   stage: terraform:plan
   needs:
+    - prepare-environment  
     - terraform:validate
   <<: *terraform_setup
   script:
