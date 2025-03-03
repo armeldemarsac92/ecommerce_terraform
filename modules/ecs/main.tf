@@ -65,7 +65,7 @@ resource "aws_ecs_service" "auth" {
   }
 
   load_balancer {
-    container_name   = "tdev_auth"
+    container_name   = "tdev_auth_${var.environment}"
     container_port   = 8080
     elb_name         = null
     target_group_arn = var.target_group_arns.auth
@@ -221,7 +221,7 @@ resource "aws_ecs_service" "api" {
   }
 
   load_balancer {
-    container_name   = "tdev_api"
+    container_name   = "tdev_api_${var.environment}"
     container_port   = 8080
     elb_name         = null
     target_group_arn = var.target_group_arns.api
@@ -376,7 +376,7 @@ resource "aws_ecs_service" "frontend" {
   }
 
   load_balancer {
-    container_name   = "tdev_frontend"
+    container_name   = "tdev_frontend_${var.environment}"
     container_port   = 3000
     elb_name         = null
     target_group_arn = var.target_group_arns.frontend
