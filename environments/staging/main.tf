@@ -4,8 +4,8 @@ locals {
   project_url  = "${local.environment}.epitechproject.fr"
   domains = [
     "${local.project_url}",
-    "api.${local.project_url}",
-    "auth.${local.project_url}"
+    "api-${local.project_url}",
+    "auth-${local.project_url}"
   ]
 }
 
