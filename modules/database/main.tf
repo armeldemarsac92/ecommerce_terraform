@@ -16,7 +16,7 @@ data "aws_db_snapshot" "final_snapshot" {
   include_shared      = false
   include_public      = false
 
-  db_snapshot_identifier = "${var.project_name}-final-snapshot"
+  db_snapshot_identifier = "${var.database_name}-final-snapshot"
 }
 
 resource "aws_db_instance" "postgresql" {

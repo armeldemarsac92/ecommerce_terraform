@@ -10,7 +10,7 @@ locals {
 }
 
 data "aws_route53_zone" "external" {
-  name = "${local.project_url}."
+  name = "epitechproject.fr."
 }
 
 provider "aws" {
