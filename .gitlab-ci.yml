@@ -98,6 +98,7 @@ terraform:apply:
   stage: terraform:apply
   needs:
     - terraform:plan
+    - prepare-environment
   rules:
     # Automatically deploy to staging from triggers
     - if: $CI_PIPELINE_SOURCE == "trigger" && $ENVIRONMENT == "staging"
