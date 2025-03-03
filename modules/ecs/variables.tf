@@ -1,5 +1,4 @@
 #ecs vars
-
 variable "vpc_id" {
   description = "The ID of the VPC"
   type        = string
@@ -61,5 +60,10 @@ variable "project_name"{
 
 variable "database_security_group_id" {
   description = "The ID of the database security group"
+  type        = string
+}
+
+variable "environment"{
+  description = "The name of the environment, staging or prod"
   type        = string
 }

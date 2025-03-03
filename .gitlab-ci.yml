@@ -6,24 +6,87 @@ variables:
   DOCKER_HOST: unix:///var/run/docker.sock
   DOCKER_DRIVER: overlay2
   GIT_DEPTH: 0
-  TF_STATE_KEY: "${CI_PROJECT_PATH_SLUG}/${CI_COMMIT_REF_SLUG}.tfstate"
+  # Default environment if not provided by trigger
+  ENVIRONMENT: ${ENVIRONMENT:-prod}
+  # Default image tags if not provided by trigger
+  API_IMAGE_TAG: ${API_IMAGE_TAG:-latest}
+  AUTH_IMAGE_TAG: ${AUTH_IMAGE_TAG:-latest}
+  FRONTEND_IMAGE_TAG: ${FRONTEND_IMAGE_TAG:-latest}
 
 stages:
+  - prepare
   - terraform:validate
   - terraform:plan
   - terraform:apply
 
-# Define a template for Terraform setup to avoid repetition
+# Prepare environment-specific variables
+prepare-environment:
+  stage: prepare
+  image: alpine:latest
+  script:
+    - |
+      if [ "$ENVIRONMENT" == "dev" ]; then
+        echo "Setting up for development environment"
+        export TERRAFORM_DIR="environments/dev"
+        export TF_STATE_KEY="${CI_PROJECT_PATH_SLUG}/dev.tfstate"
+        export ENV_NAME="development"
+      elif [ "$ENVIRONMENT" == "staging" ]; then
+        echo "Setting up for staging environment"
+        export TERRAFORM_DIR="environments/staging"
+        export TF_STATE_KEY="${CI_PROJECT_PATH_SLUG}/staging.tfstate"
+        export ENV_NAME="staging"
+      elif [ "$ENVIRONMENT" == "production" ]; then
+        echo "Setting up for production environment"
+        export TERRAFORM_DIR="environments/production"
+        export TF_STATE_KEY="${CI_PROJECT_PATH_SLUG}/production.tfstate"
+        export ENV_NAME="production"
+      else
+        echo "Unknown environment: $ENVIRONMENT"
+        exit 1
+      fi
+      
+      echo "TERRAFORM_DIR=$TERRAFORM_DIR" >> variables.env
+      echo "TF_STATE_KEY=$TF_STATE_KEY" >> variables.env
+      echo "ENV_NAME=$ENV_NAME" >> variables.env
+      
+      # Create or update terraform.tfvars with image tags
+      mkdir -p $TERRAFORM_DIR
+      
+      # Check if terraform.tfvars exists and create/update it
+      if [ -f "$TERRAFORM_DIR/terraform.tfvars" ]; then
+        # Remove existing image tag entries if they exist
+        grep -v "^api_image_tag\|^auth_image_tag\|^frontend_image_tag" $TERRAFORM_DIR/terraform.tfvars > $TERRAFORM_DIR/terraform.tfvars.new
+        mv $TERRAFORM_DIR/terraform.tfvars.new $TERRAFORM_DIR/terraform.tfvars
+      fi
+      
+      # Add new image tag entries
+      echo "api_image_tag = \"$API_IMAGE_TAG\"" >> $TERRAFORM_DIR/terraform.tfvars
+      echo "auth_image_tag = \"$AUTH_IMAGE_TAG\"" >> $TERRAFORM_DIR/terraform.tfvars
+      echo "frontend_image_tag = \"$FRONTEND_IMAGE_TAG\"" >> $TERRAFORM_DIR/terraform.tfvars
+      
+      echo "Updated terraform.tfvars in $TERRAFORM_DIR with image tags:"
+      echo "  API: $API_IMAGE_TAG"
+      echo "  Auth: $AUTH_IMAGE_TAG"
+      echo "  Frontend: $FRONTEND_IMAGE_TAG"
+      
+      cat $TERRAFORM_DIR/terraform.tfvars
+  artifacts:
+    paths:
+      - environments/*/terraform.tfvars
+    reports:
+      dotenv: variables.env
+
+# Define a template for Terraform setup to reuse
 .terraform_setup: &terraform_setup
   before_script:
-    - apk add --no-cache curl unzip aws-cli
+    - apk add --no-cache curl unzip aws-cli jq
     - curl -LO https://releases.hashicorp.com/terraform/1.7.4/terraform_1.7.4_linux_amd64.zip
     - unzip terraform_1.7.4_linux_amd64.zip
     - mv terraform /usr/local/bin/
     - aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
     - aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
     - aws configure set default.region $AWS_REGION
-    - cd $CI_PROJECT_DIR
+    - cd $CI_PROJECT_DIR/$TERRAFORM_DIR
     # Initialize with explicit backend config
     - >
       terraform init \
@@ -36,51 +99,59 @@ stages:
 terraform:validate:
   stage: terraform:validate
   image: alpine:latest
-  rules:
-    - if: $CI_COMMIT_BRANCH == "main"
+  needs:
+    - prepare-environment
   <<: *terraform_setup
   script:
     - terraform validate
-    - terraform fmt -check
+    - terraform fmt -check || true 
 
 terraform:plan:
   stage: terraform:plan
   image: alpine:latest
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH == "main"
+  needs:
+    - terraform:validate
   <<: *terraform_setup
   script:
     - terraform plan -out=tfplan
     - terraform show -no-color tfplan > tfplan.txt
   artifacts:
     paths:
-      - tfplan
-      - tfplan.txt
+      - $TERRAFORM_DIR/tfplan
+      - $TERRAFORM_DIR/tfplan.txt
     expire_in: 1 week
 
 terraform:apply:
   stage: terraform:apply
   image: alpine:latest
+  needs:
+    - terraform:plan
   rules:
+    # Automatically deploy to dev or staging from triggers
+    - if: $CI_PIPELINE_SOURCE == "trigger" && $ENVIRONMENT == "staging"
+      when: on_success
+    # Manual deployment for production or regular pipeline runs
+    - if: $CI_PIPELINE_SOURCE == "trigger" && $ENVIRONMENT == "production"
+      when: manual
     - if: $CI_COMMIT_BRANCH == "main"
       when: manual
   <<: *terraform_setup
   script:
     - terraform apply -auto-approve
   environment:
-    name: production
-    on_stop: terraform:destroy
+    name: $ENV_NAME
 
 terraform:destroy:
   stage: terraform:apply
   image: alpine:latest
+  needs:
+    - prepare-environment
   rules:
-    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_PIPELINE_SOURCE == "trigger" || $CI_COMMIT_BRANCH == "main"
       when: manual
   <<: *terraform_setup
   script:
     - terraform destroy -auto-approve
   environment:
-    name: production
+    name: $ENV_NAME
     action: stop

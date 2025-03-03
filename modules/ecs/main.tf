@@ -129,16 +129,16 @@ resource "aws_ecs_task_definition" "auth" {
         environment      = [
           {
             name  = "ASPNETCORE_ENVIRONMENT"
-            value = "Production"
+            value = var.environment
           },
         ]
         essential        = true
-        image            = "502863813996.dkr.ecr.eu-central-1.amazonaws.com/t-dev-702/prod/auth:latest"
+        image            = "502863813996.dkr.ecr.eu-central-1.amazonaws.com/${var.project_name}/${var.environment}/auth:latest"
         logConfiguration = {
           logDriver     = "awslogs"
           options       = {
             awslogs-create-group  = "true"
-            awslogs-group         = "/ecs/tdev_auth"
+            awslogs-group         = "/ecs/${var.environment}/tdev_auth"
             awslogs-region        = "eu-central-1"
             awslogs-stream-prefix = "ecs"
             max-buffer-size       = "25m"
@@ -147,13 +147,13 @@ resource "aws_ecs_task_definition" "auth" {
           secretOptions = []
         }
         mountPoints      = []
-        name             = "tdev_auth"
+        name             = "tdev_auth_${var.environment}"
         portMappings     = [
           {
             appProtocol   = "http"
             containerPort = 8080
             hostPort      = 8080
-            name          = "auth"
+            name          = "auth_${var.environment}"
             protocol      = "tcp"
           },
         ]
@@ -165,7 +165,7 @@ resource "aws_ecs_task_definition" "auth" {
   cpu                      = "256"
   enable_fault_injection   = false
   execution_role_arn       = "arn:aws:iam::502863813996:role/ecsTaskExecutionRole"
-  family                   = "tdev_auth"
+  family                   = "tdev_auth_${var.environment}"
   ipc_mode                 = null
   memory                   = "512"
   network_mode             = "awsvpc"
@@ -284,16 +284,16 @@ resource "aws_ecs_task_definition" "api" {
         environment      = [
           {
             name  = "ASPNETCORE_ENVIRONMENT"
-            value = "Production"
+            value = "${var.environment}"
           },
         ]
         essential        = true
-        image            = "502863813996.dkr.ecr.eu-central-1.amazonaws.com/t-dev-702/prod/api:latest"
+        image            = "502863813996.dkr.ecr.eu-central-1.amazonaws.com/${var.project_name}/${var.environment}/api:latest"
         logConfiguration = {
           logDriver     = "awslogs"
           options       = {
             awslogs-create-group  = "true"
-            awslogs-group         = "/ecs/tdev_api"
+            awslogs-group         = "/ecs/${var.environment}/tdev_api"
             awslogs-region        = "eu-central-1"
             awslogs-stream-prefix = "ecs"
             max-buffer-size       = "25m"
@@ -302,13 +302,13 @@ resource "aws_ecs_task_definition" "api" {
           secretOptions = []
         }
         mountPoints      = []
-        name             = "tdev_api"
+        name             = "tdev_api_${var.environment}"
         portMappings     = [
           {
             appProtocol   = "http"
             containerPort = 8080
             hostPort      = 8080
-            name          = "api"
+            name          = "api_${var.environment}"
             protocol      = "tcp"
           },
         ]
@@ -320,7 +320,7 @@ resource "aws_ecs_task_definition" "api" {
   cpu                      = "256"
   enable_fault_injection   = false
   execution_role_arn       = "arn:aws:iam::502863813996:role/ecsTaskExecutionRole"
-  family                   = "tdev_api"
+  family                   = "tdev_api_${var.environment}"
   ipc_mode                 = null
   memory                   = "512"
   network_mode             = "awsvpc"
@@ -429,16 +429,16 @@ resource "aws_ecs_task_definition" "frontend" {
         environment      = [
           {
             name  = "ASPNETCORE_ENVIRONMENT"
-            value = "Production"
+            value = "${var.environment}"
           },
         ]
         essential        = true
-        image            = "502863813996.dkr.ecr.eu-central-1.amazonaws.com/t-dev-702/prod/frontend:latest"
+        image            = "502863813996.dkr.ecr.eu-central-1.amazonaws.com/${var.project_name}/${var.environment}/frontend:latest"
         logConfiguration = {
           logDriver     = "awslogs"
           options       = {
             awslogs-create-group  = "true"
-            awslogs-group         = "/ecs/tdev_frontend"
+            awslogs-group         = "/ecs/${var.environment}/tdev_frontend"
             awslogs-region        = "eu-central-1"
             awslogs-stream-prefix = "ecs"
             max-buffer-size       = "25m"
@@ -447,13 +447,13 @@ resource "aws_ecs_task_definition" "frontend" {
           secretOptions = []
         }
         mountPoints      = []
-        name             = "tdev_frontend"
+        name             = "tdev_frontend_${var.environment}"
         portMappings     = [
           {
             appProtocol   = "http"
             containerPort = 3000
             hostPort      = 3000
-            name          = "frontend"
+            name          = "frontend_${var.environment}"
             protocol      = "tcp"
           },
         ]
@@ -465,7 +465,7 @@ resource "aws_ecs_task_definition" "frontend" {
   cpu                      = "256"
   enable_fault_injection   = false
   execution_role_arn       = "arn:aws:iam::502863813996:role/ecsTaskExecutionRole"
-  family                   = "tdev_frontend"
+  family                   = "tdev_frontend_${var.environment}"
   ipc_mode                 = null
   memory                   = "512"
   network_mode             = "awsvpc"

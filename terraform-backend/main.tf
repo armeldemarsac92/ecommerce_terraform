@@ -1,10 +1,10 @@
 provider "aws" {
-  region = "eu-central-1"  # Adjust to your preferred region
+  region = "eu-central-1"  
 }
 
 # S3 bucket for Terraform state
 resource "aws_s3_bucket" "terraform_state" {
-  bucket = "tdev700-terraform-state"  # Replace with unique name
+  bucket = "tdev700-terraform-state" 
 
   lifecycle {
     prevent_destroy = true
