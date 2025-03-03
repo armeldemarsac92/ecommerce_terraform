@@ -5,3 +5,8 @@ variable "project_name"{
   type        = string
   default     = "example-project"
 }
+
+variable "environment" {
+  description = "The environment where this infrastructure will be deployed, used to distinguish resources."
+  type        = string
+}

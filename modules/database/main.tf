@@ -1,11 +1,11 @@
 resource "aws_db_subnet_group" "database" {
-  name        = "tdev700-database-subnet-group"
-  description = "Database subnet group for tdev700 RDS instances"
+  name        = "${var.project_name}-${var.environment}-database-subnet-group"
+  description = "Database subnet group for ${var.project_name} ${var.environment} RDS instances"
 
   subnet_ids = var.private_subnet_ids
 
   tags = {
-    Name   = "tdev700-database-subnet-group"
+    Name   = "${var.project_name}-${var.environment}-database-subnet-group"
     projet = var.project_name
   }
 }
@@ -66,8 +66,8 @@ resource "aws_route53_record" "db" {
 }
 
 resource "aws_security_group" "main" {
-  name        = "sg_database_${var.project_name}"
-  description = "Security group  for the database of ${var.project_name}."
+  name        = "sg_database_${var.project_name}_${var.environment}"
+  description = "Security group  for the database of ${var.project_name}_${var.environment}."
   egress      = [
     {
       cidr_blocks      = [

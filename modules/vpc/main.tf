@@ -7,7 +7,7 @@ resource "aws_vpc" "main" {
   instance_tenancy                     = "default"
 
   tags                                 = {
-    "Name"   = "${var.project_name}_vpc"
+    "Name"   = "${var.project_name}_${var.environment}_vpc"
     "Project" = var.project_name
   }
   tags_all                             = {
@@ -19,7 +19,7 @@ resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
 
   tags = {
-    "Name"   = "${var.project_name}_igw"
+    "Name"   = "${var.project_name}_${var.environment}_igw"
     "Project" = var.project_name
   }
 }
@@ -38,7 +38,7 @@ resource "aws_route_table" "public" {
   }
 
   tags = {
-    "Name"   = "${var.project_name}_rtb_public"
+    "Name"   = "${var.project_name}_${var.environment}_rtb_public"
     "Project" = var.project_name
   }
 }
@@ -57,7 +57,7 @@ resource "aws_subnet" "public_subnet" {
 
   private_dns_hostname_type_on_launch            = "ip-name"
   tags                                           = {
-    "Name"    = "${var.project_name}-subnet-public-eu-central-1${["a", "b", "c"][count.index]}"
+    "Name"    = "${var.project_name}-${var.environment}-subnet-public-eu-central-1${["a", "b", "c"][count.index]}"
     "Project" = var.project_name
   }
   vpc_id                                         = aws_vpc.main.id
@@ -73,7 +73,7 @@ resource "aws_route_table" "private" {
   vpc_id = aws_vpc.main.id
 
   tags = {
-    "Name"   = "${var.project_name}_rtb_private"
+    "Name"   = "${var.project_name}_${var.environment}_rtb_private"
     "Project" = var.project_name
   }
 }
@@ -92,7 +92,7 @@ resource "aws_subnet" "private_subnet" {
 
   private_dns_hostname_type_on_launch            = "ip-name"
   tags                                           = {
-    "Name"    = "${var.project_name}-subnet-private-eu-central-1${["a", "b", "c"][count.index]}"
+    "Name"    = "${var.project_name}-${var.environment}-subnet-private-eu-central-1${["a", "b", "c"][count.index]}"
     "Project" = var.project_name
   }
   vpc_id                                         = aws_vpc.main.id

@@ -1,6 +1,6 @@
 locals {
   environment  = "staging"
-  project_name = "${var.project_name}-${local.environment}"
+  project_name = "${var.project_name}"
   project_url  = "${local.environment}.epitechproject.fr"
   domains = [
     "${local.project_url}",
@@ -29,7 +29,7 @@ terraform {
 # VPC Module
 module "vpc" {
   source       = "../../modules/vpc"
-  project_name = local.project_name
+  project_name = "${local.project_name}-${local.environment}"
 }
 
 # Load Balancer Module

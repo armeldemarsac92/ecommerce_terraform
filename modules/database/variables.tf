@@ -56,3 +56,8 @@ variable "db_instance_class" {
   type        = string
   default     = "db.t4g.micro"
 }
+
+variable "environment" {
+  description = "The environment staging or production"
+  type        = string
+}

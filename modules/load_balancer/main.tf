@@ -1,5 +1,5 @@
 resource "aws_lb" "main" {
-  name        = "lb-${var.project_name}"
+  name        = "lb-${var.project_name}-${var.environment}"
   client_keep_alive                                            = 3600
   desync_mitigation_mode                                       = "defensive"
   drop_invalid_header_fields                                   = false
@@ -163,7 +163,7 @@ resource "aws_lb_listener_rule" "api" {
 
 
 resource "aws_lb_target_group" "auth" {
-  name        = "lb-tg-auth-${var.project_name}"
+  name        = "lb-tg-auth-${var.project_name}-${var.environment}"
   vpc_id = var.vpc_id
   deregistration_delay              = "300"
   ip_address_type                   = "ipv4"
@@ -199,7 +199,7 @@ resource "aws_lb_target_group" "auth" {
 }
 
 resource "aws_lb_target_group" "api" {
-  name        = "lb-tg-api-${var.project_name}"
+  name        = "lb-tg-api-${var.project_name}-${var.environment}"
   vpc_id = var.vpc_id
   deregistration_delay              = "300"
   ip_address_type                   = "ipv4"
@@ -235,7 +235,7 @@ resource "aws_lb_target_group" "api" {
 }
 
 resource "aws_lb_target_group" "frontend" {
-  name        = "lb-tg-frontend-${var.project_name}"
+  name        = "lb-tg-frontend-${var.project_name}-${var.environment}"
   vpc_id = var.vpc_id
   deregistration_delay              = "300"
   ip_address_type                   = "ipv4"
@@ -271,8 +271,8 @@ resource "aws_lb_target_group" "frontend" {
 }
 
 resource "aws_security_group" "main" {
-  name        = "sg_load_balancer_${var.project_name}"
-  description = "Security group ffor the load balancer of ${var.project_name}."
+  name        = "sg_load_balancer_${var.project_name}_${var.environment}"
+  description = "Security group for the load balancer of ${var.project_name} in ${var.environment}."
   egress      = [
     {
       cidr_blocks      = [
@@ -325,7 +325,7 @@ resource "aws_security_group_rule" "auth_server_ingress" {
   source_security_group_id = aws_security_group.main.id
   security_group_id        = var.auth_security_group_id
 
-  description = "Allow traffic to the auth server from the load balancer"
+  description = "Allow traffic to the ${var.environment} auth server from the load balancer"
 }
 
 resource "aws_security_group_rule" "api_server_ingress" {
@@ -336,7 +336,7 @@ resource "aws_security_group_rule" "api_server_ingress" {
   source_security_group_id = aws_security_group.main.id
   security_group_id        = var.api_security_group_id
 
-  description = "Allow traffic to the api server from the load balancer"
+  description = "Allow traffic to the ${var.environment} api server from the load balancer"
 }
 
 resource "aws_security_group_rule" "frontend_server_ingress" {
@@ -347,6 +347,6 @@ resource "aws_security_group_rule" "frontend_server_ingress" {
   source_security_group_id = aws_security_group.main.id
   security_group_id        = var.frontend_security_group_id
 
-  description = "Allow traffic to the frontend server from the load balancer"
+  description = "Allow traffic to the ${var.environment} frontend server from the load balancer"
 }
 

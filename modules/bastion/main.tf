@@ -1,7 +1,7 @@
 resource "aws_instance" "bastion" {
   ami                         = "ami-0eddb4a4e7d846d6f"
   instance_type               = "t2.nano"
-  key_name                    = "tdev700"
+  key_name                    = "${var.project_name}"
   subnet_id                   = var.public_subnet_ids[0]
   vpc_security_group_ids      = [aws_security_group.main.id]
   associate_public_ip_address = true
@@ -10,7 +10,7 @@ resource "aws_instance" "bastion" {
   ipv6_address_count         = 1
 
   tags = {
-    Name = "bastion ${var.project_name}"
+    Name = "bastion ${var.project_name} ${var.environment}"
     Project = var.project_name
   }
 
@@ -42,8 +42,8 @@ resource "aws_route53_record" "bastion" {
 }
 
 resource "aws_security_group" "main" {
-  name        = "bastion_sg_${var.project_name}"
-  description = "Security group of   the bastion host of ${var.project_name}."
+  name        = "bastion_sg_${var.project_name}_${var.environment}"
+  description = "Security group of the bastion host of ${var.project_name} in ${var.environment}."
   vpc_id      = var.vpc_id
 
   egress {
@@ -77,6 +77,6 @@ resource "aws_security_group_rule" "database_ingress" {
   source_security_group_id = aws_security_group.main.id
   security_group_id        = var.database_security_group_id
 
-  description = "Allow traffic to the database from the bastion host."
+  description = "Allow traffic to the ${var.environment} database from the bastion host."
 }
 

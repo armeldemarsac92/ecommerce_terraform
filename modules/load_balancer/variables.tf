@@ -50,3 +50,8 @@ variable "project_name"{
   type        = string
   default     = "example-project.fr"
 }
+
+variable "environment" {
+  description = "The environment, used to identify resources globally."
+  type        = string
+}

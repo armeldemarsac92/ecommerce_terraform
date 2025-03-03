@@ -37,3 +37,8 @@ variable "database_security_group_id" {
   type        = string
 }
 
+variable "environment" {
+  description = "The environment, used to identify resources by their purpose (e.g. dev, test, prod)"
+  type        = string
+}
+

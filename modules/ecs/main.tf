@@ -1,6 +1,6 @@
 resource "aws_service_discovery_http_namespace" "main" {
   description = null
-  name        = "${var.project_name}_http_ns"
+  name        = "${var.project_name}_${var.environment}_http_ns"
   tags        = {
     "Project" = var.project_name
     "AmazonECSManaged" = "true"
@@ -12,7 +12,7 @@ resource "aws_service_discovery_http_namespace" "main" {
 }
 
 resource "aws_ecs_cluster" "main" {
-  name     = "${var.project_name}_cluster"
+  name     = "cluster_${var.project_name}_${var.environment}"
   tags                                 = {
     "Project" = var.project_name
   }
@@ -65,7 +65,7 @@ resource "aws_ecs_service" "auth" {
   }
 
   load_balancer {
-    container_name   = "tdev_auth_${var.environment}"
+    container_name   = "auth_${var.project_name}_${var.environment}"
     container_port   = 8080
     elb_name         = null
     target_group_arn = var.target_group_arns.auth
@@ -81,7 +81,7 @@ resource "aws_ecs_service" "auth" {
 }
 
 resource "aws_security_group" "auth" {
-  name        = "sg_auth_server_${var.project_name}"
+  name        = "sg_auth_server_${var.project_name}_${var.environment}"
   description = "Security group for the authentication server of ${var.project_name}."
   egress      = [
     {
@@ -138,7 +138,7 @@ resource "aws_ecs_task_definition" "auth" {
           logDriver     = "awslogs"
           options       = {
             awslogs-create-group  = "true"
-            awslogs-group         = "/ecs/${var.environment}/tdev_auth"
+            awslogs-group         = "/ecs/${var.environment}/${var.project_name}_auth"
             awslogs-region        = "eu-central-1"
             awslogs-stream-prefix = "ecs"
             max-buffer-size       = "25m"
@@ -147,13 +147,13 @@ resource "aws_ecs_task_definition" "auth" {
           secretOptions = []
         }
         mountPoints      = []
-        name             = "tdev_auth_${var.environment}"
+        name             = "auth_${var.project_name}_${var.environment}"
         portMappings     = [
           {
             appProtocol   = "http"
             containerPort = 8080
             hostPort      = 8080
-            name          = "auth_${var.environment}"
+            name          = "auth_${var.project_name}_${var.environment}"
             protocol      = "tcp"
           },
         ]
@@ -165,7 +165,7 @@ resource "aws_ecs_task_definition" "auth" {
   cpu                      = "256"
   enable_fault_injection   = false
   execution_role_arn       = "arn:aws:iam::502863813996:role/ecsTaskExecutionRole"
-  family                   = "tdev_auth_${var.environment}"
+  family                   = "auth_${var.project_name}_${var.environment}"
   ipc_mode                 = null
   memory                   = "512"
   network_mode             = "awsvpc"
@@ -221,7 +221,7 @@ resource "aws_ecs_service" "api" {
   }
 
   load_balancer {
-    container_name   = "tdev_api_${var.environment}"
+    container_name   = "api_${var.project_name}_${var.environment}"
     container_port   = 8080
     elb_name         = null
     target_group_arn = var.target_group_arns.api
@@ -293,7 +293,7 @@ resource "aws_ecs_task_definition" "api" {
           logDriver     = "awslogs"
           options       = {
             awslogs-create-group  = "true"
-            awslogs-group         = "/ecs/${var.environment}/tdev_api"
+            awslogs-group         = "/ecs/${var.environment}/${var.project_name}_api"
             awslogs-region        = "eu-central-1"
             awslogs-stream-prefix = "ecs"
             max-buffer-size       = "25m"
@@ -302,13 +302,13 @@ resource "aws_ecs_task_definition" "api" {
           secretOptions = []
         }
         mountPoints      = []
-        name             = "tdev_api_${var.environment}"
+        name             = "api_${var.project_name}_${var.environment}"
         portMappings     = [
           {
             appProtocol   = "http"
             containerPort = 8080
             hostPort      = 8080
-            name          = "api_${var.environment}"
+            name          = "api_${var.project_name}_${var.environment}"
             protocol      = "tcp"
           },
         ]
@@ -320,7 +320,7 @@ resource "aws_ecs_task_definition" "api" {
   cpu                      = "256"
   enable_fault_injection   = false
   execution_role_arn       = "arn:aws:iam::502863813996:role/ecsTaskExecutionRole"
-  family                   = "tdev_api_${var.environment}"
+  family                   = "api_${var.project_name}_${var.environment}"
   ipc_mode                 = null
   memory                   = "512"
   network_mode             = "awsvpc"
@@ -376,7 +376,7 @@ resource "aws_ecs_service" "frontend" {
   }
 
   load_balancer {
-    container_name   = "tdev_frontend_${var.environment}"
+    container_name   = "frontend_${var.project_name}_${var.environment}"
     container_port   = 3000
     elb_name         = null
     target_group_arn = var.target_group_arns.frontend
@@ -438,7 +438,7 @@ resource "aws_ecs_task_definition" "frontend" {
           logDriver     = "awslogs"
           options       = {
             awslogs-create-group  = "true"
-            awslogs-group         = "/ecs/${var.environment}/tdev_frontend"
+            awslogs-group         = "/ecs/${var.environment}/${var.project_name}_frontend"
             awslogs-region        = "eu-central-1"
             awslogs-stream-prefix = "ecs"
             max-buffer-size       = "25m"
@@ -447,13 +447,13 @@ resource "aws_ecs_task_definition" "frontend" {
           secretOptions = []
         }
         mountPoints      = []
-        name             = "tdev_frontend_${var.environment}"
+        name             = "frontend_${var.project_name}_${var.environment}"
         portMappings     = [
           {
             appProtocol   = "http"
             containerPort = 3000
             hostPort      = 3000
-            name          = "frontend_${var.environment}"
+            name          = "frontend_${var.project_name}_${var.environment}"
             protocol      = "tcp"
           },
         ]
@@ -465,7 +465,7 @@ resource "aws_ecs_task_definition" "frontend" {
   cpu                      = "256"
   enable_fault_injection   = false
   execution_role_arn       = "arn:aws:iam::502863813996:role/ecsTaskExecutionRole"
-  family                   = "tdev_frontend_${var.environment}"
+  family                   = "frontend_${var.project_name}_${var.environment}"
   ipc_mode                 = null
   memory                   = "512"
   network_mode             = "awsvpc"
