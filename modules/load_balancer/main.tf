@@ -118,8 +118,8 @@ resource "aws_lb_listener_rule" "auth" {
   condition {
     host_header {
       values = [
-        "auth.*",
-        "auth-*"
+        "auth.epitechproject.fr",
+        "auth-staging.epitechproject.fr"
       ]
     }
   }
@@ -155,8 +155,8 @@ resource "aws_lb_listener_rule" "api" {
   condition {
     host_header {
       values = [
-        "api.*",
-        "api-*"
+        "api.epitechproject.fr",
+        "api-staging.epitechproject.fr"
       ]
     }
   }
