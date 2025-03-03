@@ -119,6 +119,7 @@ resource "aws_lb_listener_rule" "auth" {
     host_header {
       values = [
         "auth.*",
+        "auth-*"
       ]
     }
   }
@@ -155,6 +156,7 @@ resource "aws_lb_listener_rule" "api" {
     host_header {
       values = [
         "api.*",
+        "api-*"
       ]
     }
   }
