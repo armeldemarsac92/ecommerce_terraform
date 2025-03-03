@@ -58,7 +58,7 @@ module "database" {
   private_subnet_ids     = module.vpc.private_subnet_ids
   internal_dns_zone_name = "internal.${local.project_url}"
   database_host_name     = "db.internal.${local.project_url}"
-  database_name          = "${local.project_name}-db"
+  database_name          = "${local.project_name}-${local.environment}-db"
 
   # Production database settings
   db_instance_class     = var.db_instance_class

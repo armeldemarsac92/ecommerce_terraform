@@ -30,12 +30,15 @@ terraform {
 module "vpc" {
   source       = "../../modules/vpc"
   project_name = local.project_name
+  environment  = local.environment
+  
 }
 
 # Load Balancer Module
 module "load_balancer" {
   source                     = "../../modules/load_balancer"
   project_name               = local.project_name
+  environment                = local.environment
   vpc_id                     = module.vpc.vpc_id
   public_subnet_ids          = module.vpc.public_subnet_ids
   private_subnet_ids         = module.vpc.private_subnet_ids
@@ -49,13 +52,14 @@ module "load_balancer" {
 # Database Module
 module "database" {
   source                 = "../../modules/database"
+  environment            = local.environment
   project_name           = local.project_name
   vpc_id                 = module.vpc.vpc_id
   public_subnet_ids      = module.vpc.public_subnet_ids
   private_subnet_ids     = module.vpc.private_subnet_ids
   internal_dns_zone_name = "internal.${local.project_url}"
   database_host_name     = "db.internal.${local.project_url}"
-  database_name          = "${local.project_name}-db"
+  database_name          = "${local.project_name}-${local.environment}-db"
 
   # Production database settings
   db_instance_class     = var.db_instance_class
@@ -82,6 +86,7 @@ module "ecs" {
 # Bastion Module
 module "bastion" {
   source                     = "../../modules/bastion"
+  environment                = local.environment
   project_name               = local.project_name
   vpc_id                     = module.vpc.vpc_id
   public_subnet_ids          = module.vpc.public_subnet_ids
