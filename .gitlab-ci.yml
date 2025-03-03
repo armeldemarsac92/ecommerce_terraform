@@ -7,7 +7,7 @@ variables:
   DOCKER_DRIVER: overlay2
   GIT_DEPTH: 0
   # Default environment if not provided by trigger
-  ENVIRONMENT: ${ENVIRONMENT:-prod}
+  ENVIRONMENT: ${ENVIRONMENT:-production}
   # Default image tags if not provided by trigger
   API_IMAGE_TAG: ${API_IMAGE_TAG:-latest}
   AUTH_IMAGE_TAG: ${AUTH_IMAGE_TAG:-latest}
@@ -19,12 +19,12 @@ stages:
   - terraform:plan
   - terraform:apply
 
-# Prepare environment-specific variables
 prepare-environment:
   stage: prepare
   image: alpine:latest
   script:
     - |
+      # Just determine which environment we're working with
       if [ "$ENVIRONMENT" == "dev" ]; then
         echo "Setting up for development environment"
         export TERRAFORM_DIR="environments/dev"
@@ -49,30 +49,32 @@ prepare-environment:
       echo "TF_STATE_KEY=$TF_STATE_KEY" >> variables.env
       echo "ENV_NAME=$ENV_NAME" >> variables.env
       
-      # Create or update terraform.tfvars with image tags
-      mkdir -p $TERRAFORM_DIR
+      # Only update image tags in terraform.tfvars
+      echo "Updating image tags in terraform.tfvars"
       
-      # Check if terraform.tfvars exists and create/update it
-      if [ -f "$TERRAFORM_DIR/terraform.tfvars" ]; then
-        # Remove existing image tag entries if they exist
-        grep -v "^api_image_tag\|^auth_image_tag\|^frontend_image_tag" $TERRAFORM_DIR/terraform.tfvars > $TERRAFORM_DIR/terraform.tfvars.new
-        mv $TERRAFORM_DIR/terraform.tfvars.new $TERRAFORM_DIR/terraform.tfvars
-      fi
+      # Create a temporary file with new image tag values
+      cat > image_tags.tfvars << EOF
+      api_image_tag    = "${API_IMAGE_TAG}"
+      auth_image_tag   = "${AUTH_IMAGE_TAG}"
+      frontend_image_tag = "${FRONTEND_IMAGE_TAG}"
+      EOF
       
-      # Add new image tag entries
-      echo "api_image_tag = \"$API_IMAGE_TAG\"" >> $TERRAFORM_DIR/terraform.tfvars
-      echo "auth_image_tag = \"$AUTH_IMAGE_TAG\"" >> $TERRAFORM_DIR/terraform.tfvars
-      echo "frontend_image_tag = \"$FRONTEND_IMAGE_TAG\"" >> $TERRAFORM_DIR/terraform.tfvars
+      # Use terraform to merge the values (this is cleaner than grep/sed)
+      apk add --no-cache terraform
       
-      echo "Updated terraform.tfvars in $TERRAFORM_DIR with image tags:"
+      # Create empty terraform file to make this a valid terraform directory
+      echo "# Empty file for tfvars merging" > temp.tf
+      
+      # Import existing tfvars and merge with our new values
+      terraform -chdir=$TERRAFORM_DIR fmt -write=true $CI_PROJECT_DIR/image_tags.tfvars
+      
+      echo "Updated terraform.tfvars with image tags:"
       echo "  API: $API_IMAGE_TAG"
       echo "  Auth: $AUTH_IMAGE_TAG"
       echo "  Frontend: $FRONTEND_IMAGE_TAG"
       
       cat $TERRAFORM_DIR/terraform.tfvars
   artifacts:
-    paths:
-      - environments/*/terraform.tfvars
     reports:
       dotenv: variables.env
 
