@@ -58,21 +58,20 @@ prepare-environment:
     - aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
     - aws configure set default.region $AWS_REGION
     - cd $CI_PROJECT_DIR/$TERRAFORM_DIR
-    - pwd 
-    - ls -R 
+    - pwd
+    - ls -R
     - echo "Project Dir: $CI_PROJECT_DIR"
     - echo "Terraform Dir: $TERRAFORM_DIR"
     - echo "Full Path: $CI_PROJECT_DIR/$TERRAFORM_DIR"
     - test -f "$CI_PROJECT_DIR/$TERRAFORM_DIR/main.tf" && echo "main.tf exists" || echo "main.tf NOT FOUND"
-    # Initialize Terraform
     - >
-      terraform init \
-        -backend-config="bucket=${TF_STATE_BUCKET}" \
-        -backend-config="key=${TF_STATE_KEY}" \
-        -backend-config="region=${AWS_REGION}" \
-        -backend-config="dynamodb_table=${TF_LOCK_TABLE}" \
+      terraform init 
+        -backend-config="bucket=${TF_STATE_BUCKET}" 
+        -backend-config="key=${TF_STATE_KEY}" 
+        -backend-config="region=${AWS_REGION}" 
+        -backend-config="dynamodb_table=${TF_LOCK_TABLE}" 
         -backend-config="encrypt=true"
-
+      
 terraform:validate:
   stage: terraform:validate
   needs:
