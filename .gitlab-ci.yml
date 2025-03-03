@@ -42,6 +42,7 @@ prepare-environment:
       # Save variables for later jobs
       echo "TERRAFORM_DIR=$TERRAFORM_DIR" >> variables.env
       echo "TF_STATE_KEY=$TF_STATE_KEY" >> variables.env
+      echo "ENVIRONMENT=$ENVIRONMENT" >> variables.env
       echo "ENV_NAME=$ENV_NAME" >> variables.env
   artifacts:
     reports:
@@ -110,7 +111,7 @@ terraform:apply:
   script:
     - terraform apply -auto-approve
   environment:
-    name: $ENV_NAME
+    name: $ENVIRONMENT
 
 terraform:destroy:
   stage: terraform:apply
@@ -123,5 +124,5 @@ terraform:destroy:
   script:
     - terraform destroy -auto-approve
   environment:
-    name: $ENV_NAME
+    name: $ENVIRONMENT
     action: stop
