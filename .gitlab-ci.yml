@@ -1,17 +1,8 @@
 default:
-  image: docker:24.0.5
+  image: alpine:latest
 
 variables:
-  DOCKER_TLS_CERTDIR: ""
-  DOCKER_HOST: unix:///var/run/docker.sock
-  DOCKER_DRIVER: overlay2
-  GIT_DEPTH: 0
-  # Default environment if not provided by trigger
   ENVIRONMENT: ${ENVIRONMENT:-production}
-  # Default image tags if not provided by trigger
-  API_IMAGE_TAG: ${API_IMAGE_TAG:-latest}
-  AUTH_IMAGE_TAG: ${AUTH_IMAGE_TAG:-latest}
-  FRONTEND_IMAGE_TAG: ${FRONTEND_IMAGE_TAG:-latest}
 
 stages:
   - prepare
@@ -19,9 +10,9 @@ stages:
   - terraform:plan
   - terraform:apply
 
+# Simple environment detection
 prepare-environment:
   stage: prepare
-  image: alpine:latest
   script:
     - |
       # Just determine which environment we're working with
@@ -45,40 +36,18 @@ prepare-environment:
         exit 1
       fi
       
+      echo "Selected environment: $ENVIRONMENT"
+      echo "Using terraform directory: $TERRAFORM_DIR"
+      
+      # Save variables for later jobs
       echo "TERRAFORM_DIR=$TERRAFORM_DIR" >> variables.env
       echo "TF_STATE_KEY=$TF_STATE_KEY" >> variables.env
       echo "ENV_NAME=$ENV_NAME" >> variables.env
-      
-      # Only update image tags in terraform.tfvars
-      echo "Updating image tags in terraform.tfvars"
-      
-      # Create a temporary file with new image tag values
-      cat > image_tags.tfvars << EOF
-      api_image_tag    = "${API_IMAGE_TAG}"
-      auth_image_tag   = "${AUTH_IMAGE_TAG}"
-      frontend_image_tag = "${FRONTEND_IMAGE_TAG}"
-      EOF
-      
-      # Use terraform to merge the values (this is cleaner than grep/sed)
-      apk add --no-cache terraform
-      
-      # Create empty terraform file to make this a valid terraform directory
-      echo "# Empty file for tfvars merging" > temp.tf
-      
-      # Import existing tfvars and merge with our new values
-      terraform -chdir=$TERRAFORM_DIR fmt -write=true $CI_PROJECT_DIR/image_tags.tfvars
-      
-      echo "Updated terraform.tfvars with image tags:"
-      echo "  API: $API_IMAGE_TAG"
-      echo "  Auth: $AUTH_IMAGE_TAG"
-      echo "  Frontend: $FRONTEND_IMAGE_TAG"
-      
-      cat $TERRAFORM_DIR/terraform.tfvars
   artifacts:
     reports:
       dotenv: variables.env
 
-# Define a template for Terraform setup to reuse
+# Define a template for Terraform setup
 .terraform_setup: &terraform_setup
   before_script:
     - apk add --no-cache curl unzip aws-cli jq
@@ -89,7 +58,7 @@ prepare-environment:
     - aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
     - aws configure set default.region $AWS_REGION
     - cd $CI_PROJECT_DIR/$TERRAFORM_DIR
-    # Initialize with explicit backend config
+    # Initialize Terraform
     - >
       terraform init \
         -backend-config="bucket=${TF_STATE_BUCKET}" \
@@ -100,17 +69,15 @@ prepare-environment:
 
 terraform:validate:
   stage: terraform:validate
-  image: alpine:latest
   needs:
     - prepare-environment
   <<: *terraform_setup
   script:
     - terraform validate
-    - terraform fmt -check || true 
+    - terraform fmt -check || true
 
 terraform:plan:
   stage: terraform:plan
-  image: alpine:latest
   needs:
     - terraform:validate
   <<: *terraform_setup
@@ -125,11 +92,10 @@ terraform:plan:
 
 terraform:apply:
   stage: terraform:apply
-  image: alpine:latest
   needs:
     - terraform:plan
   rules:
-    # Automatically deploy to dev or staging from triggers
+    # Automatically deploy to staging from triggers
     - if: $CI_PIPELINE_SOURCE == "trigger" && $ENVIRONMENT == "staging"
       when: on_success
     # Manual deployment for production or regular pipeline runs
@@ -145,7 +111,6 @@ terraform:apply:
 
 terraform:destroy:
   stage: terraform:apply
-  image: alpine:latest
   needs:
     - prepare-environment
   rules:
