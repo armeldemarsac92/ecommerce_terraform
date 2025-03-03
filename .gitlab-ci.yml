@@ -57,7 +57,7 @@ prepare-environment:
     - aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
     - aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
     - aws configure set default.region $AWS_REGION
-    - cd $CI_PROJECT_DIR/$TERRAFORM_DIR
+    - cd $TERRAFORM_DIR
     - pwd
     - ls -R
     - test -f "$CI_PROJECT_DIR/$TERRAFORM_DIR/main.tf" && echo "main.tf exists" || echo "main.tf NOT FOUND"
