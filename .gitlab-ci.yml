@@ -121,7 +121,7 @@ trigger-tests:
   needs:
     - prepare-environment  
   rules:
-    - if: $CI_COMMIT_BRANCH == "staging"
+    - if: $CI_PIPELINE_SOURCE == "trigger" && $ENVIRONMENT == "staging"
       when: on_success
   script:
     - echo "Triggering integrations tests for staging environment"
