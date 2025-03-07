@@ -3,6 +3,7 @@ default:
 
 variables:
   ENVIRONMENT: ${ENVIRONMENT:-production}
+  INFRA_PROJECT_ID: "67610186"
 
 stages:
   - prepare
@@ -113,11 +114,28 @@ terraform:apply:
     - terraform apply -auto-approve
   environment:
     name: $ENVIRONMENT
+    
+trigger-tests:
+  stage: trigger-tests
+  needs:
+    - prepare-environment  
+  rules:
+    - if: $CI_COMMIT_BRANCH == "staging"
+    when: on_success
+  script:
+    - echo "Triggering integrations tests for staging environment"
+    - 'curl --request POST --form "token=$CODE_TRIGGER_TOKEN" --form "ref=main" --form "variables[ENVIRONMENT]=$ENVIRONMENT" "https://gitlab.com/api/v4/projects/$CODE_PROJECT_ID/trigger/pipeline" > pipeline_response.json'
+    - cat pipeline_response.json
+    - 'export INFRA_PIPELINE_ID=$(cat pipeline_response.json | jq -r ".id")'
+    - 'if [ "$INFRA_PIPELINE_ID" == "null" ]; then echo "Failed to trigger infrastructure pipeline"; exit 1; fi'
+    - echo "INFRA_PIPELINE_ID=$INFRA_PIPELINE_ID" >> infra_pipeline.env
+  environment:
+    name: $ENVIRONMENT
 
 terraform:destroy:
   stage: terraform:apply
   needs:
-    - prepare-environment
+    - prepare-environment 
   rules:
     - if: $CI_PIPELINE_SOURCE == "trigger" || $CI_COMMIT_BRANCH == "main"
       when: manual
