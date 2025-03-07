@@ -10,6 +10,7 @@ stages:
   - terraform:validate
   - terraform:plan
   - terraform:apply
+  - trigger-tests
 
 # Simple environment detection
 prepare-environment:
