@@ -15,6 +15,9 @@ stages:
 # Simple environment detection
 prepare-environment:
   stage: prepare
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "trigger" && $ENVIRONMENT == "staging"
+      when: on_success
   script:
     - |
       # Just determine which environment we're working with
@@ -119,10 +122,12 @@ terraform:apply:
 trigger-tests:
   stage: trigger-tests
   needs:
-    - prepare-environment  
+    - terraform:apply  
   rules:
     - if: $CI_PIPELINE_SOURCE == "trigger" && $ENVIRONMENT == "staging"
       when: on_success
+  before_script:
+    - apk add --no-cache curl jq
   script:
     - echo "Triggering integrations tests for staging environment"
     - 'curl --request POST --form "token=$CODE_TRIGGER_TOKEN" --form "ref=main" --form "variables[ENVIRONMENT]=$ENVIRONMENT" "https://gitlab.com/api/v4/projects/$CODE_PROJECT_ID/trigger/pipeline" > pipeline_response.json'
