@@ -130,7 +130,7 @@ trigger-tests:
     - apk add --no-cache curl jq
   script:
     - echo "Triggering integrations tests for staging environment"
-    - 'curl --request POST --form "token=$CODE_TRIGGER_TOKEN" --form "ref=main" --form "variables[ENVIRONMENT]=$ENVIRONMENT" "https://gitlab.com/api/v4/projects/$CODE_PROJECT_ID/trigger/pipeline" > pipeline_response.json'
+    - 'curl --request POST --form "token=$CODE_TRIGGER_TOKEN" --form "ref=main" --form "variables[ENVIRONMENT]=$ENV_NAME" "https://gitlab.com/api/v4/projects/$CODE_PROJECT_ID/trigger/pipeline" > pipeline_response.json'
     - cat pipeline_response.json
     - 'export INFRA_PIPELINE_ID=$(cat pipeline_response.json | jq -r ".id")'
     - 'if [ "$INFRA_PIPELINE_ID" == "null" ]; then echo "Failed to trigger infrastructure pipeline"; exit 1; fi'
