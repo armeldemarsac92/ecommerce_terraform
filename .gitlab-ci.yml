@@ -77,6 +77,9 @@ prepare-environment:
       
 terraform:validate:
   stage: terraform:validate
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "trigger" && $ENVIRONMENT == "staging"
+      when: on_success
   needs:
     - job : prepare-environment
       artifacts: true
@@ -87,6 +90,9 @@ terraform:validate:
 
 terraform:plan:
   stage: terraform:plan
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "trigger" && $ENVIRONMENT == "staging"
+      when: on_success
   needs:
     - prepare-environment  
     - terraform:validate
@@ -99,6 +105,8 @@ terraform:plan:
       - $TERRAFORM_DIR/tfplan
       - $TERRAFORM_DIR/tfplan.txt
     expire_in: 1 week
+  environment:
+    name: $ENVIRONMENT
 
 terraform:apply:
   stage: terraform:apply
@@ -133,7 +141,7 @@ trigger-tests:
     - apk add --no-cache curl jq
   script:
     - echo "Triggering integrations tests for staging environment"
-    - 'curl --request POST --form "token=$CODE_TRIGGER_TOKEN" --form "ref=main" --form "variables[ENVIRONMENT]=staging" "https://gitlab.com/api/v4/projects/$CODE_PROJECT_ID/trigger/pipeline"'
+    - 'curl --request POST --form "token=$CODE_TRIGGER_TOKEN" --form "ref=main" --form "variables[ENVIRONMENT]=$ENVIRONMENT" "https://gitlab.com/api/v4/projects/$CODE_PROJECT_ID/trigger/pipeline"'
     - cat pipeline_response.json
     - 'export INFRA_PIPELINE_ID=$(cat pipeline_response.json | jq -r ".id")'
     - 'if [ "$INFRA_PIPELINE_ID" == "null" ]; then echo "Failed to trigger infrastructure pipeline"; exit 1; fi'
