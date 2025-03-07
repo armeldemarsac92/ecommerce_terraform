@@ -3,7 +3,7 @@ default:
 
 variables:
   ENVIRONMENT: ${ENVIRONMENT:-production}
-  INFRA_PROJECT_ID: "67610186"
+  CODE_PROJECT_ID: "67610186"
 
 stages:
   - prepare
@@ -134,6 +134,10 @@ trigger-tests:
   script:
     - echo "Triggering integrations tests for staging environment"
     - 'curl --request POST --form "token=$CODE_TRIGGER_TOKEN" --form "ref=main" --form "variables[ENVIRONMENT]=staging" "https://gitlab.com/api/v4/projects/$CODE_PROJECT_ID/trigger/pipeline"'
+    - cat pipeline_response.json
+    - 'export INFRA_PIPELINE_ID=$(cat pipeline_response.json | jq -r ".id")'
+    - 'if [ "$INFRA_PIPELINE_ID" == "null" ]; then echo "Failed to trigger infrastructure pipeline"; exit 1; fi'
+    - echo "INFRA_PIPELINE_ID=$INFRA_PIPELINE_ID" >> infra_pipeline.env
   environment:
     name: $ENVIRONMENT
 
