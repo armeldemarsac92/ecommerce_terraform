@@ -121,7 +121,7 @@ trigger-tests:
     - prepare-environment  
   rules:
     - if: $CI_COMMIT_BRANCH == "staging"
-    when: on_success
+      when: on_success
   script:
     - echo "Triggering integrations tests for staging environment"
     - 'curl --request POST --form "token=$CODE_TRIGGER_TOKEN" --form "ref=main" --form "variables[ENVIRONMENT]=$ENVIRONMENT" "https://gitlab.com/api/v4/projects/$CODE_PROJECT_ID/trigger/pipeline" > pipeline_response.json'
