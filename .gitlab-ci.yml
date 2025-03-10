@@ -158,7 +158,7 @@ terraform:destroy:
   rules:
     - if: $CI_PIPELINE_SOURCE == "trigger" || $CI_COMMIT_BRANCH == "main"
       when: manual    
-    - if: $CI_PIPELINE_SOURCE == "trigger" && $TRIGGER_SOURCE == "gitlab" && $ENVIRONMENT == "staging" && TRIGGER_ACTION == "destroy"
+    - if: $CI_PIPELINE_SOURCE == "trigger" && $TRIGGER_SOURCE == "iphone" && $ENVIRONMENT == "staging" && TRIGGER_ACTION == "destroy"
       when: always
   <<: *terraform_setup
   script:
