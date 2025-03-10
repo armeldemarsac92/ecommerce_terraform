@@ -69,7 +69,6 @@ prepare-environment:
 terraform:validate:
   rules:
     - if: $TRIGGER_ACTION == "apply"
-      when: on_success
   needs:
     - job : prepare-environment
       artifacts: true
@@ -81,7 +80,6 @@ terraform:validate:
 terraform:plan:
   rules:
     - if: $TRIGGER_ACTION == "apply"
-      when: on_success
   needs:
     - prepare-environment  
     - terraform:validate
