@@ -155,12 +155,12 @@ trigger-tests:
 terraform:destroy:
   stage: terraform:destroy
   needs:
-    - prepare-environment 
+    - prepare-environment
   rules:
     - if: $CI_PIPELINE_SOURCE == "trigger" || $CI_COMMIT_BRANCH == "main"
       when: manual    
     - if: $CI_PIPELINE_SOURCE == "trigger" && $TRIGGER_SOURCE == "iphone" && $ENVIRONMENT == "staging" && $TRIGGER_ACTION == "destroy"
-      when: always
+      when: on_success
   <<: *terraform_setup
   script:
     - terraform destroy -auto-approve
