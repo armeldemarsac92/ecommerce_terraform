@@ -102,9 +102,9 @@ terraform:apply:
     - job : prepare-environment
       artifacts: true
   rules:
-    - if: $TRIGGER_ACTION == "apply" && $CI_PIPELINE_SOURCE == "trigger"
+    - if: $TRIGGER_ACTION == "apply" && $CI_PIPELINE_SOURCE == "trigger" 
       when: on_success    
-    - if: $TRIGGER_SOURCE == "gitlab"
+    - if: $ENVIRONMENT == "production"
       when: manual
   <<: *terraform_setup
   script:
