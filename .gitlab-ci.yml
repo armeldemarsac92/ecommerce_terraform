@@ -3,6 +3,7 @@ default:
 
 variables:
   ENVIRONMENT: ${ENVIRONMENT:-production}
+  TRIGGER_SOURCE: ${SOURCE:-gitlab}
   CODE_PROJECT_ID: "67610186"
 
 stages:
@@ -135,7 +136,7 @@ trigger-tests:
   needs:
     - job : terraform:apply  
   rules:
-    - if: $CI_PIPELINE_SOURCE == "trigger" && $ENVIRONMENT == "staging"
+    - if: $CI_PIPELINE_SOURCE == "trigger" && $ENVIRONMENT == "staging" && $TRIGGER_SOURCE == "gitlab"
       when: on_success
   before_script:
     - apk add --no-cache curl jq
