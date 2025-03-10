@@ -3,7 +3,8 @@ default:
 
 variables:
   ENVIRONMENT: ${ENVIRONMENT:-production}
-  TRIGGER_SOURCE: ${SOURCE:-gitlab}
+  TRIGGER_SOURCE: ${TRIGGER_SOURCE:-gitlab}
+  ACTION: ${TRIGGER_ACTION:-apply}
   CODE_PROJECT_ID: "67610186"
 
 stages:
@@ -139,7 +140,7 @@ trigger-tests:
     - if: $CI_PIPELINE_SOURCE == "trigger" && $ENVIRONMENT == "staging" && $TRIGGER_SOURCE == "gitlab"
       when: on_success
   before_script:
-    - apk add --no-cache curl jq
+    - apk add --no-cache curl jqmanual
   script:
     - echo "Triggering integrations tests for staging environment"
     - 'curl --request POST --form "token=$CODE_TRIGGER_TOKEN" --form "ref=main" --form "variables[ENVIRONMENT]=$ENVIRONMENT" "https://gitlab.com/api/v4/projects/$CODE_PROJECT_ID/trigger/pipeline" > pipeline_response.json'
@@ -156,7 +157,9 @@ terraform:destroy:
     - prepare-environment 
   rules:
     - if: $CI_PIPELINE_SOURCE == "trigger" || $CI_COMMIT_BRANCH == "main"
-      when: manual
+      when: manual    
+    - if: $CI_PIPELINE_SOURCE == "trigger" && $TRIGGER_SOURCE == "gitlab" && $ENVIRONMENT == "staging" && TRIGGER_ACTION == "destroy"
+      when: always
   <<: *terraform_setup
   script:
     - terraform destroy -auto-approve
