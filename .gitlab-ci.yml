@@ -105,7 +105,6 @@ terraform:plan:
     name: $ENVIRONMENT
 
 terraform:apply:
-  stage: terraform:apply
   needs:
     - job : terraform:plan
       artifacts: true
