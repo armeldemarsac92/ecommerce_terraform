@@ -9,9 +9,6 @@ variables:
 
 # Simple environment detection
 prepare-environment:
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "trigger" && $ENVIRONMENT == "staging"
-      when: on_success
   script:
     - |
       # Just determine which environment we're working with
