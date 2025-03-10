@@ -6,6 +6,7 @@ variables:
   TRIGGER_SOURCE: "gitlab"
   TRIGGER_ACTION: "apply"
   CODE_PROJECT_ID: "67610186"
+  MR_ID: $CI_MERGE_REQUEST_ID
 
 # Simple environment detection
 prepare-environment:
@@ -94,6 +95,33 @@ terraform:plan:
     expire_in: 1 week
   environment:
     name: $ENVIRONMENT
+    
+comment-merge-request:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  needs:
+    - prepare-environment
+    - terraform:plan
+  script:
+    - echo "Commenting MR with Terraform plan output"
+    - |
+      # Read the plan output
+      PLAN_OUTPUT=$(cat $TERRAFORM_DIR/tfplan.txt)
+      
+      # Format the comment with markdown
+      COMMENT_BODY="### Terraform Plan for environment: $ENVIRONMENT\n\n\`\`\`\n${PLAN_OUTPUT}\n\`\`\`"
+      
+      # Properly escape the comment body for JSON
+      ESCAPED_COMMENT=$(echo "$COMMENT_BODY" | jq -Rs .)
+      
+      # Post the comment to the MR
+      curl --request POST \
+        --header "PRIVATE-TOKEN: $GITLAB_API_TOKEN" \
+        --header "Content-Type: application/json" \
+        --data "{\"body\": ${ESCAPED_COMMENT}}" \
+        "https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/merge_requests/$MR_ID/notes"
+  environment:
+    name: $ENVIRONMENT
 
 terraform:apply:
   needs:
@@ -116,7 +144,7 @@ trigger-tests:
   needs:
     - job : terraform:apply  
   rules:
-    - if: $CI_PIPELINE_SOURCE == "trigger" && $ENVIRONMENT == "staging" && $TRIGGER_SOURCE == "gitlab" && $TRIGGER_ACTION == "apply"
+    - if: $CI_PIPELINE_SOURCE == "trigger" && $ENVIRONMENT == "staging" gitlab && $TRIGGER_SOURCE == "gitlab" && $TRIGGER_ACTION == "apply"
       when: on_success    
   before_script:
     - apk add --no-cache curl jq
