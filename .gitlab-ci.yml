@@ -2,9 +2,9 @@ default:
   image: alpine:latest
 
 variables:
-  ENVIRONMENT: ${ENVIRONMENT:-production}
-  TRIGGER_SOURCE: ${TRIGGER_SOURCE:-gitlab}
-  TRIGGER_ACTION: ${TRIGGER_ACTION:-apply}
+  ENVIRONMENT: "staging"
+  TRIGGER_SOURCE: "gitlab"
+  TRIGGER_ACTION: "apply"
   CODE_PROJECT_ID: "67610186"
 
 # Simple environment detection
@@ -102,7 +102,7 @@ terraform:apply:
     - job : prepare-environment
       artifacts: true
   rules:
-    - if: $TRIGGER_ACTION == "apply"
+    - if: $TRIGGER_ACTION == "apply" && $CI_PIPELINE_SOURCE == "trigger"
       when: on_success    
     - if: $TRIGGER_SOURCE == "gitlab"
       when: manual
