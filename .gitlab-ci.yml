@@ -7,17 +7,8 @@ variables:
   TRIGGER_ACTION: ${TRIGGER_ACTION:-apply}
   CODE_PROJECT_ID: "67610186"
 
-stages:
-  - prepare
-  - terraform:validate
-  - terraform:plan
-  - terraform:apply
-  - trigger-tests
-  - terraform:destroy
-
 # Simple environment detection
 prepare-environment:
-  stage: prepare
   rules:
     - if: $CI_PIPELINE_SOURCE == "trigger" && $ENVIRONMENT == "staging"
       when: on_success
@@ -79,10 +70,11 @@ prepare-environment:
       -backend-config="encrypt=true"
       
 terraform:validate:
-  stage: terraform:validate
   rules:
     - if: $CI_PIPELINE_SOURCE == "trigger" && $ENVIRONMENT == "staging"
       when: on_success
+    - if: $CI_PIPELINE_SOURCE == "trigger" && $TRIGGER_SOURCE == "iphone" && $ENVIRONMENT == "staging" && $TRIGGER_ACTION == "destroy"
+      when: never
   needs:
     - job : prepare-environment
       artifacts: true
@@ -92,10 +84,11 @@ terraform:validate:
     - terraform fmt -check || true
 
 terraform:plan:
-  stage: terraform:plan
   rules:
     - if: $CI_PIPELINE_SOURCE == "trigger" && $ENVIRONMENT == "staging"
       when: on_success
+    - if: $CI_PIPELINE_SOURCE == "trigger" && $TRIGGER_SOURCE == "iphone" && $ENVIRONMENT == "staging" && $TRIGGER_ACTION == "destroy"
+      when: never
   needs:
     - prepare-environment  
     - terraform:validate
@@ -122,6 +115,8 @@ terraform:apply:
     # Automatically deploy to staging from triggers
     - if: $CI_PIPELINE_SOURCE == "trigger" && $ENVIRONMENT == "staging" && $TRIGGER_ACTION == "apply"
       when: on_success
+    - if: $CI_PIPELINE_SOURCE == "trigger" && $TRIGGER_SOURCE == "iphone" && $ENVIRONMENT == "staging" && $TRIGGER_ACTION == "destroy"
+      when: never
     # Manual deployment for production or regular pipeline runs
     - if: $CI_PIPELINE_SOURCE == "trigger" && $ENVIRONMENT == "production" && $TRIGGER_ACTION == "apply"
       when: manual
@@ -134,14 +129,15 @@ terraform:apply:
     name: $ENVIRONMENT
     
 trigger-tests:
-  stage: trigger-tests
   needs:
     - job : terraform:apply  
   rules:
     - if: $CI_PIPELINE_SOURCE == "trigger" && $ENVIRONMENT == "staging" && $TRIGGER_SOURCE == "gitlab" && $TRIGGER_ACTION == "apply"
       when: on_success
+    - if: $CI_PIPELINE_SOURCE == "trigger" && $TRIGGER_SOURCE == "iphone" && $ENVIRONMENT == "staging" && $TRIGGER_ACTION == "destroy"
+      when: never
   before_script:
-    - apk add --no-cache curl jqmanual
+    - apk add --no-cache curl jq
   script:
     - echo "Triggering integrations tests for staging environment"
     - 'curl --request POST --form "token=$CODE_TRIGGER_TOKEN" --form "ref=main" --form "variables[ENVIRONMENT]=$ENVIRONMENT" "https://gitlab.com/api/v4/projects/$CODE_PROJECT_ID/trigger/pipeline" > pipeline_response.json'
@@ -153,14 +149,13 @@ trigger-tests:
     name: $ENVIRONMENT
 
 terraform:destroy:
-  stage: terraform:destroy
   needs:
     - prepare-environment
   rules:
     - if: $CI_PIPELINE_SOURCE == "trigger" || $CI_COMMIT_BRANCH == "main"
       when: manual    
     - if: $CI_PIPELINE_SOURCE == "trigger" && $TRIGGER_SOURCE == "iphone" && $ENVIRONMENT == "staging" && $TRIGGER_ACTION == "destroy"
-      when: on_success
+      when: always
   <<: *terraform_setup
   script:
     - terraform destroy -auto-approve
