@@ -91,6 +91,6 @@ module "bastion" {
   public_subnet_ids          = module.vpc.public_subnet_ids
   private_subnet_ids         = module.vpc.private_subnet_ids
   route53_zone_id            = data.aws_route53_zone.external.zone_id
-  bastion_host_name          = "bastion.${local.project_url}"
+  bastion_host_name          = "bastion-${local.project_url}"
   database_security_group_id = module.database.security_group_id
 }
