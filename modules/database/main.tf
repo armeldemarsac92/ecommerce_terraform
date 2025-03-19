@@ -12,11 +12,9 @@ resource "aws_db_subnet_group" "database" {
 
 data "aws_db_snapshot" "final_snapshot" {
   most_recent         = true
-  snapshot_type       = "manual"
-  include_shared      = false
-  include_public      = false
-  db_instance_identifier      = aws_db_instance.postgresql.identifier
-  db_snapshot_identifier = "${var.database_name}-final-snapshot"
+  db_instance_identifier = var.database_name
+
+#  db_snapshot_identifier = "${var.database_name}-final-snapshot"
 }
 
 resource "aws_db_instance" "postgresql" {
