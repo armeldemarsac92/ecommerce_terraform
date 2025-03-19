@@ -15,7 +15,7 @@ data "aws_db_snapshot" "final_snapshot" {
   snapshot_type       = "manual"
   include_shared      = false
   include_public      = false
-
+  db_instance_identifier      = var.database_name
   db_snapshot_identifier = "${var.database_name}-final-snapshot"
 }
 
