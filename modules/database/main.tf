@@ -41,7 +41,7 @@ resource "aws_db_instance" "postgresql" {
   backup_window                       = "21:38-22:08"
   maintenance_window                  = "mon:02:18-mon:02:48"
 
-  skip_final_snapshot   = false
+  skip_final_snapshot   = var.environment == "production" ? false : true 
   final_snapshot_identifier = "${var.database_name}-final-snapshot-${formatdate("YYYYMMDDhhmmss", timestamp())}"
   publicly_accessible                 = false
 
